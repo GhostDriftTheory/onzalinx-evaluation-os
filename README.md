@@ -1,5 +1,8 @@
 # On the Links Public Claim-to-Evidence Evaluation OS
 
+> ### ▶ [評価結果サマリーを開く](https://ghostdrifttheory.github.io/onzalinx-evaluation-os/)
+> **ROBUST / PUBLIC_ALIGNMENT_ESTABLISHED — Guaranteed Lower Bound: 70.0**
+
 株式会社オンザリンクスの**公開理念と公開行動の整合性**を、固定した調査義務、Source-boundなEvidence区間、複数の評価条件、Hash binding、Certificate Semantic Replayによって検証する公開リポジトリです。
 
 ## 結論
