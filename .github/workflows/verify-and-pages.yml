@@ -180,13 +180,30 @@ jobs:
               == certificate["certificate_payload_hash"],
           )
 
-          for label, body in (("README", readme), ("report", report), ("HTML", html)):
+          # README is the international-facing English entry point, while the
+          # authoritative report and HTML case study remain in Japanese.
+          readme_lower = readme.lower()
+          require("README relationship disclosure", "strategic partner" in readme_lower)
+          require(
+              "README independent-audit disclosure",
+              "not an independent third-party audit" in readme_lower,
+          )
+          require(
+              "README human interval disclosure",
+              "evidence intervals" in readme_lower and "human-authored" in readme_lower,
+          )
+
+          for label, body in (("report", report), ("HTML", html)):
               require(f"{label} relationship disclosure", "戦略的パートナー" in body)
               require(f"{label} independent-audit disclosure", "独立第三者監査" in body)
               require(f"{label} human interval disclosure", "Evidence区間" in body)
 
           require("report self-test count", "内蔵self-test：**23件通過**" in report)
-          require("README self-test count", "self-test **23件**" in readme)
+          require(
+              "README self-test count",
+              "**23 built-in self-tests**" in readme
+              or "self-test **23件**" in readme,
+          )
           require("HTML engine version", "Evaluation OS 1.2.0-final" in html)
           require("HTML report link", "②評価OS詳細レポート（オンザリンクス社）.md" in html)
           require("HTML engine link", "③評価OS実施コード（オンザリンクス社）.py" in html)
