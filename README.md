@@ -2,7 +2,7 @@
 
 [![Machine Verification](https://github.com/GhostDriftTheory/onzalinx-evaluation-os/actions/workflows/verify-and-pages.yml/badge.svg?branch=main)](https://github.com/GhostDriftTheory/onzalinx-evaluation-os/actions/workflows/verify-and-pages.yml)
 
-> ### ▶ [View the Evaluation Summary](https://ghostdrifttheory.github.io/onzalinx-evaluation-os/)
+> ### ▶ [View the Evaluation Summary](https://ghostdrifttheory.github.io/onzalinx-evaluation-os/%E2%91%A0%E8%A9%95%E4%BE%A1OS%E8%A9%95%E4%BE%A1%E3%83%AC%E3%83%9D%E3%83%BC%E3%83%88%E3%81%BE%E3%81%A8%E3%82%81%EF%BC%88%E3%82%AA%E3%83%B3%E3%82%B6%E3%83%AA%E3%83%B3%E3%82%AF%E3%82%B9%E7%A4%BE%EF%BC%89.html)
 >
 > **ROBUST / PUBLIC_ALIGNMENT_ESTABLISHED — Guaranteed Lower Bound: 70.0**
 
