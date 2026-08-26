@@ -107,3 +107,5 @@ git push -u origin main
 ## License
 
 このリポジトリには意図的にOSSライセンスを付与していません。公開閲覧・再検証と、再利用・改変・商用利用の許諾は別です。再利用条件を付与する場合だけ、目的に合うLICENSEを追加してください。
+
+Patent Notice: This repository implements techniques related to Japanese Patent Application No. 2026-190686 (filed August 20, 2026). No patent license is granted by publication of this repository.
