@@ -1,0 +1,253 @@
+name: Verify and publish Evaluation OS
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: evaluation-os-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Machine verification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Run built-in self-tests
+        run: python -S "③評価OS実施コード（オンザリンクス社）.py" self-test
+
+      - name: Generate certificate twice and require byte-identical output
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -S "③評価OS実施コード（オンザリンクス社）.py" certificate > certificate-a.json
+          python -S "③評価OS実施コード（オンザリンクス社）.py" certificate > certificate-b.json
+          cmp --silent certificate-a.json certificate-b.json
+          mv certificate-a.json certificate.json
+          rm certificate-b.json
+
+      - name: Semantic replay certificate
+        run: python -S "③評価OS実施コード（オンザリンクス社）.py" verify certificate.json
+
+      - name: Cross-check code, report, HTML, disclosure and commitments
+        shell: bash
+        run: |
+          python -S - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          import re
+          from pathlib import Path
+
+          root = Path.cwd()
+          html_path = root / "①評価OS評価レポートまとめ（オンザリンクス社）.html"
+          report_path = root / "②評価OS詳細レポート（オンザリンクス社）.md"
+          engine_path = root / "③評価OS実施コード（オンザリンクス社）.py"
+          readme_path = root / "README.md"
+          certificate_path = root / "certificate.json"
+
+          for path in (html_path, report_path, engine_path, readme_path, certificate_path):
+              if not path.is_file():
+                  raise SystemExit(f"missing required file: {path.name}")
+
+          html = html_path.read_text(encoding="utf-8")
+          report = report_path.read_text(encoding="utf-8")
+          readme = readme_path.read_text(encoding="utf-8")
+          certificate = json.loads(certificate_path.read_text(encoding="utf-8"))
+
+          def sha256(path: Path) -> str:
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          def require(label: str, condition: bool) -> None:
+              if not condition:
+                  raise SystemExit(f"verification failed: {label}")
+
+          def extract(pattern: str, text: str, label: str) -> str:
+              match = re.search(pattern, text, flags=re.MULTILINE)
+              if not match:
+                  raise SystemExit(f"could not find {label}")
+              return match.group(1)
+
+          require("certificate schema", certificate["schema"] == "onzalinx-evaluation-os-certificate/1.2")
+          require("engine version", certificate["engine"]["version"] == "1.2.0-final")
+          require("engine standard library", certificate["engine"]["standard_library_only"] is True)
+          require("engine code hash", certificate["engine"]["code_hash"] == sha256(engine_path))
+
+          derived = certificate["derived"]
+          core = derived["core_coarse"]
+          frontier = derived["core_frontier"]
+          gate = derived["investigation_gate"]
+          metadata = certificate["inputs"]["metadata"]
+          policy = certificate["inputs"]["evidence_level_scale"]["assignment_policy"]
+          security = certificate["security_boundary"]
+
+          require("retrospective evaluation status", derived["status"] == "VALID_RETROSPECTIVE_EVALUATION")
+          require("core robust status", core["status"] == "ROBUST")
+          require("core outcome", core["possible_outcomes"] == ["PUBLIC_ALIGNMENT_ESTABLISHED"])
+          require("family count", core["family_count"] == 60)
+          require("score envelope", core["score_envelope"] == {"lower": "70", "upper": "88.6875"})
+          require("guaranteed lower score", frontier["guaranteed_lower_score"] == "70")
+          require("strict 68 passed", frontier["declared_threshold_tests"]["68"] is True)
+          require("75 not guaranteed", frontier["declared_threshold_tests"]["75"] is False)
+          require("32 investigation obligations", (gate["mandatory_closed"], gate["mandatory_total"]) == (32, 32))
+          require("38 source dispositions", (gate["source_register_dispositioned"], gate["source_register_total"]) == (38, 38))
+          require("4 uncontrolled routes", (gate["uncontrolled_route_closed"], gate["uncontrolled_route_total"]) == (4, 4))
+          require("6 candidate dispositions", (gate["candidate_dispositioned"], gate["candidate_total"]) == (6, 6))
+
+          require("evaluator identity", metadata["evaluator_entity_name"] == "株式会社GhostDrift数理研究所")
+          require(
+              "evaluator relationship",
+              metadata["evaluator_relationship_to_target"]
+              == "STRATEGIC_PARTNER_AND_JOINT_AI_ASSURANCE_IMPLEMENTATION_PARTY",
+          )
+          require("independent audit not claimed", metadata["independent_third_party_audit_claimed"] is False)
+          require(
+              "human source-bound interval mode",
+              metadata["evidence_interval_assignment_mode"]
+              == "HUMAN_AUTHORED_SOURCE_BOUND_ORDINAL_INTERVAL",
+          )
+          require("intervals not machine-derived", policy["machine_derived"] is False)
+          require("interval uniqueness not claimed", policy["unique_correctness_claimed"] is False)
+          require("integer interval bounds", policy["bounds"] == "INTEGER_0_TO_4")
+          require("relationship disclosed in security boundary", security["evaluator_relationship_disclosed"] is True)
+          require("certificate says not independent audit", security["independent_third_party_audit"] is False)
+
+          commitments = certificate["commitments"]
+          report_hashes = {
+              "fixed_evaluation_universe_hash": extract(
+                  r"Fixed Evaluation Universe Hash：`([0-9a-f]{64})`", report, "Fixed Evaluation Universe Hash"
+              ),
+              "trusted_investigation_template_hash": extract(
+                  r"Trusted Investigation Template Hash：`([0-9a-f]{64})`", report, "Investigation Template Hash"
+              ),
+              "fixed_source_register_hash": extract(
+                  r"Fixed Source Register Hash：`([0-9a-f]{64})`", report, "Source Register Hash"
+              ),
+              "investigation_review_records_hash": extract(
+                  r"Investigation Review Records Hash：`([0-9a-f]{64})`", report, "Review Records Hash"
+              ),
+              "prospective_charter_hash": extract(
+                  r"Prospective Charter Hash：`([0-9a-f]{64})`", report, "Prospective Charter Hash"
+              ),
+          }
+          for key, documented in report_hashes.items():
+              require(f"report commitment {key}", commitments[key] == documented)
+
+          require(
+              "report Python code hash",
+              extract(r"PythonコードSHA-256：`([0-9a-f]{64})`", report, "Python code hash") == sha256(engine_path),
+          )
+          require(
+              "report certificate hash",
+              extract(
+                  r"現行生成Certificate Payload Hash：`([0-9a-f]{64})`",
+                  report,
+                  "Certificate Payload Hash",
+              )
+              == certificate["certificate_payload_hash"],
+          )
+          require(
+              "HTML prospective charter hash",
+              extract(
+                  r"Prospective Charter Hash</strong>\s*<div[^>]*>([0-9a-f]{64})</div>",
+                  html,
+                  "HTML Prospective Charter Hash",
+              )
+              == commitments["prospective_charter_hash"],
+          )
+          require(
+              "HTML certificate hash",
+              extract(
+                  r"Certificate Hash</strong>\s*<div[^>]*>([0-9a-f]{64})</div>",
+                  html,
+                  "HTML Certificate Hash",
+              )
+              == certificate["certificate_payload_hash"],
+          )
+
+          for label, body in (("README", readme), ("report", report), ("HTML", html)):
+              require(f"{label} relationship disclosure", "戦略的パートナー" in body)
+              require(f"{label} independent-audit disclosure", "独立第三者監査" in body)
+              require(f"{label} human interval disclosure", "Evidence区間" in body)
+
+          require("report self-test count", "内蔵self-test：**23件通過**" in report)
+          require("README self-test count", "self-test **23件**" in readme)
+          require("HTML engine version", "Evaluation OS 1.2.0-final" in html)
+          require("HTML report link", "②評価OS詳細レポート（オンザリンクス社）.md" in html)
+          require("HTML engine link", "③評価OS実施コード（オンザリンクス社）.py" in html)
+
+          print("Cross-document verification: PASS")
+          print(f"Certificate Payload Hash: {certificate['certificate_payload_hash']}")
+          PY
+
+      - name: Upload replayable certificate
+        uses: actions/upload-artifact@v7
+        with:
+          name: evaluation-os-certificate-${{ github.sha }}
+          path: certificate.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Prepare compact static site
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp "①評価OS評価レポートまとめ（オンザリンクス社）.html" _site/index.html
+          cp "②評価OS詳細レポート（オンザリンクス社）.md" _site/
+          cp "③評価OS実施コード（オンザリンクス社）.py" _site/
+          cp README.md _site/
+          cp certificate.json _site/
+          (
+            cd _site
+            sha256sum \
+              README.md \
+              index.html \
+              "②評価OS詳細レポート（オンザリンクス社）.md" \
+              "③評価OS実施コード（オンザリンクス社）.py" \
+              certificate.json > SHA256SUMS.txt
+            sha256sum -c SHA256SUMS.txt
+          )
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy-pages:
+    name: Deploy GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Deploy verified site
+        id: deployment
+        uses: actions/deploy-pages@v5
