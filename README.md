@@ -1,5 +1,7 @@
 # On the Links Public Claim-to-Evidence Evaluation OS
 
+[![Machine Verification](https://github.com/GhostDriftTheory/onzalinx-evaluation-os/actions/workflows/verify-and-pages.yml/badge.svg?branch=main)](https://github.com/GhostDriftTheory/onzalinx-evaluation-os/actions/workflows/verify-and-pages.yml)
+
 > ### ▶ [View the Evaluation Summary](https://ghostdrifttheory.github.io/onzalinx-evaluation-os/)
 >
 > **ROBUST / PUBLIC_ALIGNMENT_ESTABLISHED — Guaranteed Lower Bound: 70.0**
