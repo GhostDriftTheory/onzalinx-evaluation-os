@@ -1,4 +1,4 @@
-# On the Links Public Claim-to-Evidence Evaluation OS
+# ONZALINKS Public Claim-to-Evidence Evaluation OS
 
 [![Machine Verification](https://github.com/GhostDriftTheory/onzalinx-evaluation-os/actions/workflows/verify-and-pages.yml/badge.svg?branch=main)](https://github.com/GhostDriftTheory/onzalinx-evaluation-os/actions/workflows/verify-and-pages.yml)
 
@@ -6,7 +6,7 @@
 >
 > **ROBUST / PUBLIC_ALIGNMENT_ESTABLISHED — Guaranteed Lower Bound: 70.0**
 
-This repository provides a public implementation for evaluating the **alignment between the publicly stated principles and publicly observable actions of On the Links Co., Ltd.**
+This repository provides a public implementation for evaluating the **alignment between the publicly stated principles and publicly observable actions of ONZALINKS Co., Ltd.**
 
 The evaluation combines fixed investigation obligations, source-bound evidence intervals, multiple admissible evaluation conditions, cryptographic hash binding, and certificate-based semantic replay.
 
@@ -21,13 +21,13 @@ The case-study reports are currently provided in Japanese. The implementation it
 * Evaluation Families: **60**
 * Investigation Gate: **32 / 32 CLOSED**
 
-This does **not** mean that On the Links is “a 70-point company.”
+This does **not** mean that ONZALINKS is “a 70-point company.”
 
 It means that, within the explicitly declared evaluation universe, the conclusion that its **publicly stated principles and publicly observable actions are aligned does not reverse** when admissible evidence interpretations, criterion weights, decision thresholds, and interval uncertainty are varied.
 
 ## Relationship Between Evaluator and Evaluated Entity
 
-GhostDrift Mathematical Institute, which designed and conducted this evaluation, is a **strategic partner of On the Links and a party to their joint AI-assurance implementation activities**.
+GhostDrift Mathematical Institute, which designed and conducted this evaluation, is a **strategic partner of ONZALINKS and a party to their joint AI-assurance implementation activities**.
 
 This evaluation is therefore **not an independent third-party audit**.
 
@@ -102,7 +102,7 @@ Create an empty public GitHub repository and push the complete `onzalinx-evaluat
 ```bash
 git init
 git add .
-git commit -m "Publish On the Links Evaluation OS 1.2"
+git commit -m "Publish ONZALINKS Evaluation OS 1.2"
 git branch -M main
 git remote add origin <YOUR_REPOSITORY_URL>
 git push -u origin main
